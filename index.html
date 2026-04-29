@@ -6,35 +6,28 @@
 <title>Rewire · 神經地圖評估</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600&family=Caveat:wght@400;500;600;700&family=Homemade+Apple&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
 
 <style>
   :root{
-    /* Forest greens - pulled from logo */
     --forest-deep: #2d3f26;
     --forest: #3d5a3a;
     --forest-mid: #577851;
     --forest-soft: #7a9674;
     --forest-pale: #b8cdb2;
     --forest-whisper: #d9e4d5;
-
-    /* Paper / ivory */
     --ivory: #f2ead8;
     --ivory-warm: #ede2cc;
     --ivory-soft: #e8dcc2;
     --paper: #f5efe0;
-
-    /* ink for body on ivory */
     --ink: #2a3624;
     --ink-soft: #4a5542;
     --ink-muted: #6b7562;
   }
-
   *{ box-sizing: border-box; }
   html, body{ margin:0; padding:0; }
   body{
@@ -46,8 +39,6 @@
     letter-spacing: 0.01em;
     overflow-x: hidden;
   }
-
-  /* subtle paper grain */
   .grain::before{
     content:'';
     position: fixed; inset: 0;
@@ -57,11 +48,9 @@
     mix-blend-mode: overlay;
     z-index: 9999;
   }
-
   button{ font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
   textarea, input{ font-family: inherit; }
 
-  /* reveal */
   @keyframes rise {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
@@ -74,8 +63,6 @@
     0%, 100% { transform: scale(1); opacity: 0.85; }
     50% { transform: scale(1.06); opacity: 1; }
   }
-
-  /* cursor blink */
   @keyframes blink {
     0%, 49% { opacity: 1; }
     50%, 100% { opacity: 0; }
@@ -83,15 +70,12 @@
   .caret::after{
     content:'';
     display: inline-block;
-    width: 2px;
-    height: 1em;
+    width: 2px; height: 1em;
     vertical-align: -0.15em;
     background: currentColor;
     margin-left: 3px;
     animation: blink 1s steps(1) infinite;
   }
-
-  /* dot progress */
   .dot{
     width: 6px; height: 6px; border-radius: 50%;
     background: rgba(242,234,216,0.2);
@@ -107,12 +91,14 @@
   <script type="text/babel" data-presets="env,react">
   const { useState, useEffect, useRef, useMemo } = React;
 
-  /* ---------- Questions ---------- */
+  /* ─────────────────────────────────────────
+     QUESTIONS  (10題，無類型洩漏)
+  ───────────────────────────────────────── */
   const QUESTIONS = [
     {
       layer: '第一層 · 現在的狀態',
       n: 1,
-      q: '當你試著改變一件事，但一直沒辦法堅持，你通常對自己說什麼？',
+      q: '你試著改變一件事，但一直沒辦法堅持。\n你通常對自己說的那句話是？',
       hint: '不用修飾，寫你真的會對自己說的那句。',
       type: 'text',
       placeholder: '例如：我就是這樣的人，改不了⋯',
@@ -120,8 +106,8 @@
     {
       layer: '第一層 · 現在的狀態',
       n: 2,
-      q: '你的身體現在有什麼地方一直在提醒你它不舒服？',
-      hint: '身體跟心會一起說話。你聽到的是哪一個？',
+      q: '你的身體現在常常有哪些訊號？',
+      hint: '身體和心會一起說話，你聽到的是哪幾個？',
       type: 'multi',
       options: [
         '失眠、淺眠、很難關機',
@@ -137,67 +123,113 @@
     {
       layer: '第一層 · 現在的狀態',
       n: 3,
-      q: '有沒有一個反覆出現的情境，讓你每次都有一樣的感受或反應？',
-      hint: '那個你一到某個地方、某種人、某種場合就會「又來了」的瞬間。',
-      type: 'text',
-      placeholder: '例如：每次媽媽問我工作，我就立刻防備⋯',
+      q: '做完一件事之後，你的第一個念頭通常是？',
+      hint: '選最接近你的那一個。',
+      type: 'single',
+      options: [
+        '終於做完了，但還有更多沒做到',
+        '做得夠好嗎？別人怎麼看？',
+        '好，下一個，繼續',
+        '其實沒什麼，運氣好而已',
+        '我終於追上了一點點',
+        '鬆了口氣，但不知道接下來怎麼辦',
+      ],
     },
     {
-      layer: '第二層 · 成長歷程',
+      layer: '第一層 · 現在的狀態',
       n: 4,
-      q: '在你長大的家庭裡，有沒有一句「不成文的規定」？',
-      hint: '沒人明講，但每個人都照做的那一條。',
-      type: 'text',
-      placeholder: '例如：不可以讓別人覺得我們家不好⋯',
+      q: '在關係裡感覺不舒服，你第一個反應通常是？',
+      hint: '家人、朋友、伴侶都算。',
+      type: 'single',
+      options: [
+        '先忍著，等氣氛過去再說',
+        '開始在腦子裡分析，哪裡出了問題',
+        '把自己的感受壓下去，配合對方',
+        '想辦法把這件事處理掉、控制住',
+        '乾脆退出，遠比繼續待在裡面容易',
+        '抽離，用旁觀的角度看，不太感覺了',
+      ],
     },
     {
-      layer: '第二層 · 成長歷程',
+      layer: '第一層 · 現在的狀態',
       n: 5,
-      q: '有沒有某個時刻，讓你開始覺得「我可能不夠好」？',
-      hint: '不用是大事，可能只是一句話、一個眼神。慢慢來。',
-      type: 'text',
-      placeholder: '可以很短、很模糊，也可以選擇跳過。',
-      optional: true,
+      q: '如果明天什麼事都不用做，你的感覺是？',
+      hint: '不用想應該怎麼感覺，選你真正會有的反應。',
+      type: 'single',
+      options: [
+        '不安，感覺自己沒有在前進',
+        '鬆一口氣，但又有點空空的',
+        '擔心有什麼事沒顧到、沒安排好',
+        '有點麻木，不確定自己想要什麼',
+        '有罪惡感，覺得應該做些什麼',
+        '焦慮，感覺別人都沒有停下來',
+      ],
     },
     {
       layer: '第二層 · 成長歷程',
       n: 6,
-      q: '在關係裡，你最容易扮演什麼角色？',
-      hint: '家人、朋友、伴侶——你一進去就自動站到哪個位子？',
+      q: '在你長大的家裡，哪些是沒人明講但大家都照做的規定？',
+      hint: '可以複選，選那些你「懂但沒說過」的那種。',
+      type: 'multi',
+      options: [
+        '不能讓外人看到家裡的問題',
+        '要比別人更努力才算夠',
+        '情緒要自己消化，不能麻煩別人',
+        '要先顧好別人，再想自己',
+        '乖、聽話、不惹事才是好的',
+        '沒有特別感覺到什麼',
+      ],
+    },
+    {
+      layer: '第二層 · 成長歷程',
+      n: 7,
+      q: '有沒有某個時刻，讓你開始覺得「我可能不夠好」？',
+      hint: '不用是大事，可能只是一句話、一個眼神。慢慢來，也可以跳過。',
+      type: 'text',
+      placeholder: '可以很短、很模糊，寫你記得的樣子就好。',
+      optional: true,
+    },
+    {
+      layer: '第二層 · 成長歷程',
+      n: 8,
+      q: '你最容易在哪種時刻想要消失或退出？',
+      hint: '選最有共鳴的那一個。',
       type: 'single',
       options: [
-        '給予者 — 我習慣先照顧別人',
-        '證明者 — 我要夠好、夠厲害，才安心',
-        '觀察者 — 我會先退一步，看情勢',
-        '守門人 — 我會先計畫好所有事',
-        '退場者 — 感覺要受傷前我就先走',
-        '討好者 — 我會讀空氣配合大家',
+        '快要成功，但還沒確定結果的時候',
+        '被人期待太高、壓力太大的時候',
+        '感覺自己快成為別人負擔的時候',
+        '情緒太滿、快要裝不下的時候',
+        '覺得自己太慢、跟不上別人的時候',
+        '其實我不太有這種感覺',
       ],
     },
     {
       layer: '第三層 · 準備度',
-      n: 7,
-      q: '如果你的生活在一年後有一件事不一樣，你最希望是哪一件？',
+      n: 9,
+      q: '如果你的生活在一年後有一件事不一樣，\n你最希望是哪一件？',
       hint: '不用現實，寫你真的想要的。',
       type: 'text',
       placeholder: '例如：我想在做決定之前，不用先想別人會不會失望⋯',
     },
     {
       layer: '第三層 · 準備度',
-      n: 8,
-      q: '你現在最需要的是什麼？',
+      n: 10,
+      q: '你現在最需要的是？',
       hint: 'Karen 會從這裡開始陪你。',
       type: 'single',
       options: [
-        '被理解 — 有人聽懂我在說什麼',
-        '被給方法 — 告訴我怎麼開始',
-        '有個地方可以說 — 先把心裡的話放下',
+        '被理解——有人聽懂我在說什麼',
+        '被給方法——告訴我怎麼開始',
+        '有個地方可以說——先把心裡的話放下',
         '三個我都需要一點',
       ],
     },
   ];
 
-  /* ---------- 6 Neural Type Reports ---------- */
+  /* ─────────────────────────────────────────
+     REPORTS  (6 types)
+  ───────────────────────────────────────── */
   const REPORTS = {
     prover: {
       key: 'prover',
@@ -205,19 +237,14 @@
       typeZh: '證明者',
       tag: '你的舊程式是：我要夠厲害，才有資格在這裡',
       bars: [['完美主義傾向',92],['停不下來的衝動',88],['身體訊號強度',74],['自我批評頻率',81]],
-      weeks: [
-        { t:'看見', d:'每天 3 分鐘，看看那條「停不下來」的迴路今天在哪些時刻跳出來。不改變它，只是看見。' },
-        { t:'鬆開', d:'練習做一件「不為了什麼」的事。不是為了變更好，不是為了給誰交代。只是做。' },
-        { t:'重寫', d:'它又跳出來的時候，輕輕說：謝謝你保護我這麼久，今天我試試看別的方式。' },
-      ],
       letter: [
         '嘿，我讀完你的答案了。',
         '',
-        '我想先說一件事——你願意誠實回答這八題，本身就已經是一件不容易的事。很多人一輩子都不敢直直看這些問題。你看了，你寫了。',
+        '我想先說一件事——你願意誠實回答這十題，本身就已經是一件不容易的事。很多人一輩子都不敢直直看這些問題。你看了，你寫了。',
         '',
-        '我在你的回答裡看見一條跑了很久的迴路。它的名字我叫它「證明者」。',
+        '我在你的回答裡看見一條跑了很久的迴路。我叫它「證明者」。',
         '',
-        '它的程式碼大概是這樣寫的：「我要夠厲害、夠好、夠有用，才有資格在這裡。」你可能不會這樣對自己說，但你的身體會知道——那種一停下來就不安的感覺、那種做完一件事馬上想再做下一件的衝動、那種被誇獎的時候其實有點不好意思接、那種深夜突然很累但大腦停不下來的時刻。',
+        '它的程式碼大概是這樣寫的：「我要夠厲害、夠好、夠有用，才有資格在這裡。」你可能不會這樣對自己說，但你的身體會知道——那種一停下來就不安的感覺、那種做完一件事馬上想再做下一件的衝動、那種深夜突然很累但大腦停不下來的時刻。',
         '',
         '這條迴路不是你寫的。它是很早以前，在你還沒辦法選擇的時候，就被環境刻進去的。可能是被比較過、可能是愛你的人用「有條件」的方式愛你、可能是你曾經感覺——只有當我做到什麼，我才被看見。',
         '',
@@ -237,11 +264,6 @@
       typeZh: '守門人',
       tag: '你的舊程式是：我得先顧好所有事，才能放心',
       bars: [['過度控制傾向',90],['放不下的張力',85],['身體訊號強度',78],['先替別人著想',86]],
-      weeks: [
-        { t:'看見', d:'每天 3 分鐘，看看那個「我得先顧好」的念頭今天什麼時候冒出來。' },
-        { t:'鬆開', d:'每天練習把一件小事「不插手」，讓它自己發生一次。' },
-        { t:'重寫', d:'當控制感又升起，輕輕說：我可以先放下，也會沒事的。' },
-      ],
       letter: [
         '嘿，我讀完你的答案了。',
         '',
@@ -251,7 +273,7 @@
         '',
         '它的程式碼是這樣寫的：「只要我先顧好每一個細節，就不會有人受傷，我也不會被怪罪。」你的肩頸、你的腸胃、你的淺眠——它們都在替這個迴路工作。',
         '',
-        '這個程式是很早以前被寫進去的。你可能是家裡最懂事的那一個、你可能從小就被需要「先長大」、你可能記得有一次你沒顧到，然後有人很失望、或是有人真的受傷了。你學會了：我得一直盯著，才安全。',
+        '這個程式是很早以前被寫進去的。你可能是家裡最懂事的那一個、你可能從小就被需要「先長大」、你可能記得有一次你沒顧到，然後有人很失望。你學會了：我得一直盯著，才安全。',
         '',
         '我想讓你知道——這條迴路不是你的個性，是你的訓練。它在當年保護了你、也保護了別人。',
         '',
@@ -269,11 +291,6 @@
       typeZh: '退場者',
       tag: '你的舊程式是：先放棄，就不會真的失敗',
       bars: [['自我破壞傾向',88],['避免失望的慣性',92],['身體訊號強度',70],['自我批評頻率',84]],
-      weeks: [
-        { t:'看見', d:'每天 3 分鐘，找出今天那個「我想退出」的瞬間。不要改，只是標記。' },
-        { t:'鬆開', d:'練習在想退出的那一刻，停一分鐘。只是停一下，再決定。' },
-        { t:'重寫', d:'下次又到那個點，試著多留 10 分鐘。看看會發生什麼事。' },
-      ],
       letter: [
         '嘿，我讀完你的答案了。',
         '',
@@ -303,11 +320,6 @@
       typeZh: '討好者',
       tag: '你的舊程式是：表達需求，會讓人離開我',
       bars: [['讀空氣的習慣',93],['壓抑真實感受',89],['身體訊號強度',76],['自我批評頻率',78]],
-      weeks: [
-        { t:'看見', d:'每天 3 分鐘，回想今天有哪一刻你想說「不」但說了「好」。' },
-        { t:'鬆開', d:'每天練習說出一個真實的小需求。再小都可以。' },
-        { t:'重寫', d:'當你又想配合，輕輕說：我的需要也可以存在，不會有人因此離開。' },
-      ],
       letter: [
         '嘿，我讀完你的答案了。',
         '',
@@ -323,7 +335,7 @@
         '',
         '現在我問你——你需要什麼？',
         '',
-        '不用立刻回答。我們接下來 21 天會慢慢練習，讓你重新聽見那個小小的、一直被你壓下去的聲音。',
+        '不用立刻回答。我們接下來會慢慢練習，讓你重新聽見那個小小的、一直被你壓下去的聲音。',
         '',
         '它一直都在。只是你沒有被允許聽見。',
         '',
@@ -336,11 +348,6 @@
       typeZh: '觀察者',
       tag: '你的舊程式是：感受太多會很危險，抽離才安全',
       bars: [['理性化傾向',91],['跟身體的距離',84],['身體訊號強度',68],['自我批評頻率',72]],
-      weeks: [
-        { t:'看見', d:'每天 2 分鐘，只問自己：此刻我的身體有什麼感覺？不分析，只感覺。' },
-        { t:'鬆開', d:'每天讓一個情緒「停留」一分鐘，不要馬上解釋它。' },
-        { t:'重寫', d:'當你又開始分析，輕輕說：我現在可以先不用懂，只要感覺。' },
-      ],
       letter: [
         '嘿，我讀完你的答案了。',
         '',
@@ -358,7 +365,7 @@
         '',
         '但現在你長大了，你可以慢慢把自己拉回身體裡。不是一次全部回來——太快會很慌。是一次一點點。',
         '',
-        '我們接下來 21 天，會做一件很小的事：每天讓一個感覺停留一分鐘。不分析、不解決、只感覺。',
+        '我們接下來，會做一件很小的事：每天讓一個感覺停留一分鐘。不分析、不解決、只感覺。',
         '',
         '這一分鐘，會慢慢長成你的家。',
         '',
@@ -371,11 +378,6 @@
       typeZh: '破浪者',
       tag: '你的舊程式是：我起步太晚，怎麼追都來不及',
       bars: [['時間焦慮強度',90],['跟別人比較的頻率',87],['身體訊號強度',75],['自我批評頻率',80]],
-      weeks: [
-        { t:'看見', d:'每天 3 分鐘，找出今天一次「我晚了」的念頭。' },
-        { t:'鬆開', d:'把那句話改寫一次：不是晚了，是剛剛好現在開始。' },
-        { t:'重寫', d:'每天做一件只屬於這個當下的小事——不為了追上誰。' },
-      ],
       letter: [
         '嘿，我讀完你的答案了。',
         '',
@@ -393,45 +395,95 @@
         '神經迴路可以在任何時候被改寫。',
         '你不是晚了——你只是比別人多繞了一段路，看過別人沒看過的風景。',
         '',
-        '接下來 21 天，我們一起把「晚了」慢慢改寫成「剛剛好現在開始」。',
+        '接下來，我們一起把「晚了」慢慢改寫成「剛剛好現在開始」。',
         '',
         '這條路我自己也還在走。我會陪你。',
       ],
     },
   };
 
-  /* ---------- Type-picking logic ---------- */
-  function pickType(answers){
+  /* ─────────────────────────────────────────
+     SCORING  (行為模式推算，不靠直接對應)
+  ───────────────────────────────────────── */
+  function pickType(answers) {
     const scores = { prover:0, gatekeeper:0, exit:0, pleaser:0, observer:0, bloomer:0 };
-    // Q6 single choice — direct signal
-    const role = answers[5] || '';
-    if (role.startsWith('給予者')) scores.pleaser += 5;
-    else if (role.startsWith('證明者')) scores.prover += 5;
-    else if (role.startsWith('觀察者')) scores.observer += 5;
-    else if (role.startsWith('守門人')) scores.gatekeeper += 5;
-    else if (role.startsWith('退場者')) scores.exit += 5;
-    else if (role.startsWith('討好者')) scores.pleaser += 5;
 
-    // Q2 body multi — weighting
-    const body = answers[1] || [];
-    if (body.includes('失眠、淺眠、很難關機')) { scores.prover+=2; scores.gatekeeper+=2; }
-    if (body.includes('肩頸腰背慢性緊繃')) { scores.prover+=2; scores.gatekeeper+=2; }
-    if (body.includes('容易疲倦、提不起勁')) { scores.exit+=2; scores.bloomer+=1; }
-    if (body.includes('焦慮、心悸、胸口悶')) { scores.prover+=1; scores.bloomer+=2; scores.gatekeeper+=1; }
-    if (body.includes('胃痛、腸胃不穩')) { scores.pleaser+=2; scores.gatekeeper+=1; }
-    if (body.includes('莫名想哭、情緒容易潰堤')) { scores.pleaser+=2; }
-    if (body.includes('感覺麻木、跟身體有點斷線')) { scores.observer+=3; }
-
-    // Q1 self-talk keywords
+    // Q1 自我對話關鍵字
     const talk = (answers[0] || '').toString();
-    if (/沒用|爛|廢|不夠|失敗|垃圾/.test(talk)) scores.prover += 1;
-    if (/放棄|算了|反正|逃/.test(talk)) scores.exit += 2;
-    if (/晚|來不及|太老|年紀/.test(talk)) scores.bloomer += 2;
-    if (/麻煩|拖累|別人/.test(talk)) scores.pleaser += 1;
-    if (/想太多|為什麼|分析/.test(talk)) scores.observer += 1;
-    if (/應該|必須|要先/.test(talk)) scores.gatekeeper += 1;
+    if (/沒用|爛|廢|不夠|失敗|垃圾|不行/.test(talk))   scores.prover += 2;
+    if (/放棄|算了|反正|逃|沒意思/.test(talk))          scores.exit += 3;
+    if (/晚|來不及|太老|年紀|追/.test(talk))            scores.bloomer += 3;
+    if (/麻煩|拖累|別人|負擔/.test(talk))               scores.pleaser += 2;
+    if (/想太多|為什麼|分析|弄清楚/.test(talk))         scores.observer += 2;
+    if (/應該|必須|要先|計畫|安排/.test(talk))          scores.gatekeeper += 2;
 
-    // pick highest, tie-break: prover
+    // Q2 身體訊號
+    const body = answers[1] || [];
+    if (body.includes('失眠、淺眠、很難關機'))      { scores.prover+=2; scores.gatekeeper+=2; }
+    if (body.includes('肩頸腰背慢性緊繃'))          { scores.prover+=1; scores.gatekeeper+=2; }
+    if (body.includes('容易疲倦、提不起勁'))         { scores.exit+=2; scores.bloomer+=1; }
+    if (body.includes('焦慮、心悸、胸口悶'))         { scores.prover+=1; scores.bloomer+=2; scores.gatekeeper+=1; }
+    if (body.includes('胃痛、腸胃不穩'))             { scores.pleaser+=2; scores.gatekeeper+=1; }
+    if (body.includes('莫名想哭、情緒容易潰堤'))     { scores.pleaser+=2; scores.exit+=1; }
+    if (body.includes('感覺麻木、跟身體有點斷線'))   { scores.observer+=3; }
+
+    // Q3 完成一件事後的念頭
+    const q3 = answers[2] || '';
+    if (q3.startsWith('終於做完了，但還有更多'))    scores.prover += 3;
+    if (q3.startsWith('做得夠好嗎'))               scores.prover += 2;
+    if (q3.startsWith('好，下一個'))               scores.prover += 1;
+    if (q3.startsWith('其實沒什麼，運氣好'))         scores.pleaser += 2;
+    if (q3.startsWith('我終於追上了'))              scores.bloomer += 3;
+    if (q3.startsWith('鬆了口氣，但不知道'))         scores.observer += 2;
+
+    // Q4 關係不舒服時的反應
+    const q4 = answers[3] || '';
+    if (q4.startsWith('先忍著'))                   scores.pleaser += 3;
+    if (q4.startsWith('開始在腦子裡分析'))          scores.observer += 3;
+    if (q4.startsWith('把自己的感受壓下去'))        scores.pleaser += 3;
+    if (q4.startsWith('想辦法把這件事處理掉'))      scores.gatekeeper += 3;
+    if (q4.startsWith('乾脆退出'))                 scores.exit += 4;
+    if (q4.startsWith('抽離，用旁觀'))              scores.observer += 4;
+
+    // Q5 什麼都不用做的感覺
+    const q5 = answers[4] || '';
+    if (q5.startsWith('不安，感覺自己沒有在前進'))  scores.prover += 3;
+    if (q5.startsWith('鬆一口氣，但又有點空'))      scores.exit += 1;
+    if (q5.startsWith('擔心有什麼事沒顧到'))        scores.gatekeeper += 4;
+    if (q5.startsWith('有點麻木'))                  scores.observer += 3;
+    if (q5.startsWith('有罪惡感'))                  scores.prover += 2;
+    if (q5.startsWith('焦慮，感覺別人都沒有停'))    scores.bloomer += 3;
+
+    // Q6 家庭規則 (multi)
+    const fam = answers[5] || [];
+    if (fam.includes('要比別人更努力才算夠'))       scores.prover += 2;
+    if (fam.includes('情緒要自己消化，不能麻煩別人')) { scores.pleaser+=2; scores.observer+=1; }
+    if (fam.includes('要先顧好別人，再想自己'))     scores.pleaser += 2;
+    if (fam.includes('乖、聽話、不惹事才是好的'))   scores.pleaser += 1;
+    if (fam.includes('不能讓外人看到家裡的問題'))   scores.gatekeeper += 2;
+
+    // Q7 文字略過，只有關鍵字輔助
+    const mem = (answers[6] || '').toString();
+    if (/比較|不夠好|不如/.test(mem))              scores.prover += 1;
+    if (/拋棄|離開|消失/.test(mem))                scores.exit += 1;
+    if (/沒人懂|沒人在乎/.test(mem))               scores.observer += 1;
+
+    // Q8 最容易消失的時刻
+    const q8 = answers[7] || '';
+    if (q8.startsWith('快要成功，但還沒確定'))      scores.exit += 4;
+    if (q8.startsWith('被人期待太高'))              scores.prover += 3;
+    if (q8.startsWith('感覺自己快成為別人負擔'))    scores.pleaser += 4;
+    if (q8.startsWith('情緒太滿、快要裝不下'))      { scores.exit+=2; scores.observer+=2; }
+    if (q8.startsWith('覺得自己太慢'))              scores.bloomer += 4;
+
+    // Q9 一年後的願望關鍵字
+    const wish = (answers[8] || '').toString();
+    if (/別人.*失望|在意.*眼光|被接受/.test(wish)) scores.pleaser += 2;
+    if (/停下來|休息|不用拚/.test(wish))            scores.prover += 1;
+    if (/開始|出發|終於/.test(wish))                scores.bloomer += 2;
+    if (/明白|搞清楚|知道自己/.test(wish))          scores.observer += 1;
+
+    // 選最高分，平手 prover 優先
     let best = 'prover', max = -1;
     for (const k of Object.keys(scores)) {
       if (scores[k] > max) { max = scores[k]; best = k; }
@@ -439,32 +491,27 @@
     return REPORTS[best];
   }
 
-  /* ---------- Typewriter hook ---------- */
-  function useTypewriter(lines, speed = 28, startDelay = 400){
+  /* ─────────────────────────────────────────
+     Typewriter hook
+  ───────────────────────────────────────── */
+  function useTypewriter(lines, speed = 28, startDelay = 400) {
     const [out, setOut] = useState([]);
     const [done, setDone] = useState(false);
     const [skip, setSkip] = useState(false);
 
     useEffect(() => {
-      if (skip) {
-        setOut(lines);
-        setDone(true);
-        return;
-      }
+      if (skip) { setOut(lines); setDone(true); return; }
       let cancelled = false;
-      let line = 0;
-      let ch = 0;
+      let line = 0, ch = 0;
       let buf = lines.map(() => '');
       const tick = () => {
         if (cancelled) return;
         if (line >= lines.length) { setDone(true); return; }
         const full = lines[line];
         if (full.length === 0) {
-          buf[line] = '';
-          line++; ch = 0;
+          buf[line] = ''; line++; ch = 0;
           setOut([...buf]);
-          setTimeout(tick, 260);
-          return;
+          setTimeout(tick, 260); return;
         }
         ch++;
         buf[line] = full.slice(0, ch);
@@ -484,9 +531,11 @@
     return { out, done, skip: () => setSkip(true) };
   }
 
-  /* ============== App ============== */
-  function App(){
-    const [stage, setStage] = useState('intro'); // intro | q | computing | report
+  /* ─────────────────────────────────────────
+     APP
+  ───────────────────────────────────────── */
+  function App() {
+    const [stage, setStage] = useState('intro');
     const [idx, setIdx] = useState(0);
     const [answers, setAnswers] = useState({});
 
@@ -504,141 +553,135 @@
 
     return (
       <>
-        {stage === 'intro'   && <Intro onStart={start} />}
-        {stage === 'q'       && <QuestionScreen idx={idx} total={QUESTIONS.length} q={QUESTIONS[idx]} initial={answers[idx]} onNext={next} onBack={back} />}
+        {stage === 'intro'     && <Intro onStart={start} />}
+        {stage === 'q'         && <QuestionScreen idx={idx} total={QUESTIONS.length} q={QUESTIONS[idx]} initial={answers[idx]} onNext={next} onBack={back} />}
         {stage === 'computing' && <Computing />}
-        {stage === 'report'  && <Report answers={answers} />}
+        {stage === 'report'    && <Report answers={answers} />}
       </>
     );
   }
 
-  /* ---------- Intro ---------- */
-  function Intro({ onStart }){
+  /* ─────────────────────────────────────────
+     INTRO
+  ───────────────────────────────────────── */
+  function Dot(){ return <span style={{display:'inline-block',width:4,height:4,borderRadius:'50%',background:'var(--forest-pale)',marginRight:12,verticalAlign:'middle'}}/>; }
+
+  function Intro({ onStart }) {
     return (
-      <div style={introStyles.wrap}>
-        <div style={introStyles.inner}>
+      <div style={introS.wrap}>
+        <div style={introS.inner}>
           <LogoMark size={72} />
-          <div style={introStyles.kicker}>REWIRE · 神經地圖評估</div>
-          <h1 style={introStyles.h1}>
-            你為什麼<br/>一直回到原點？
-          </h1>
-          <p style={introStyles.sub}>
-            七分鐘，八個問題。<br/>
+          <div style={introS.kicker}>REWIRE · 神經地圖評估</div>
+          <h1 style={introS.h1}>你為什麼<br/>一直回到原點？</h1>
+          <p style={introS.sub}>
+            十分鐘，十個問題。<br/>
             不是找出你哪裡有問題，是找出你大腦裡那條最舊的程式。
           </p>
-          <div style={introStyles.notesWrap}>
-            <div style={introStyles.notes}>
-              <div style={introStyles.noteRow}><Dot/> 一題一頁，按你自己的節奏</div>
-              <div style={introStyles.noteRow}><Dot/> 沒有對錯，只有誠實</div>
-              <div style={introStyles.noteRow}><Dot/> 完成後會收到 Karen 為你寫的一封信</div>
+          <div style={introS.notesWrap}>
+            <div style={introS.notes}>
+              <div><Dot/> 一題一頁，按你自己的節奏</div>
+              <div><Dot/> 沒有對錯，只有誠實</div>
+              <div><Dot/> 完成後會收到 Karen 為你寫的一封信</div>
             </div>
           </div>
-          <div style={{display:'block'}}>
-          <button style={introStyles.cta} onClick={onStart}
+          <button style={introS.cta} onClick={onStart}
             onMouseOver={e=>e.currentTarget.style.background='var(--ivory)'}
             onMouseOut={e=>e.currentTarget.style.background='var(--ivory-warm)'}>
             開始 →
           </button>
-          </div>
-          <div style={introStyles.foot}>
-            「不是改變，是改寫。」
-          </div>
+          <div style={introS.foot}>「不是改變，是改寫。」</div>
         </div>
       </div>
     );
   }
-  function Dot(){ return <span style={{display:'inline-block',width:4,height:4,borderRadius:'50%',background:'var(--forest-pale)',marginRight:12,verticalAlign:'middle'}}/>; }
 
-  const introStyles = {
-    wrap: { minHeight: '100vh', display:'flex', alignItems:'center', justifyContent:'center', padding: '48px 24px', animation:'fade 900ms ease both' },
-    inner: { maxWidth: 560, width: '100%', textAlign:'center' },
-    kicker: { marginTop: 28, fontSize: 11, letterSpacing: '0.3em', color: 'var(--forest-pale)', fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 500 },
-    h1: { fontFamily:"'Noto Serif TC', serif", fontWeight: 400, fontSize: 'clamp(36px, 6vw, 56px)', lineHeight: 1.25, margin: '20px 0 24px', color: 'var(--ivory)', letterSpacing:'0.02em' },
-    sub: { fontFamily:"'Noto Serif TC', serif", fontSize: 16, lineHeight: 1.95, color: 'var(--forest-whisper)', margin: '0 0 36px', fontWeight: 300 },
-    notesWrap: { display:'block', width:'100%', textAlign:'center', margin:'0 0 44px' },
-    notes: { textAlign:'left', display:'inline-block', padding:'0', fontSize: 14, color: 'rgba(242,234,216,0.75)', lineHeight: 2, fontFamily:"'Noto Sans TC', sans-serif", fontWeight: 300 },
-    noteRow: {},
-    cta: { background: 'var(--ivory-warm)', color: 'var(--forest-deep)', padding: '16px 48px', borderRadius: 999, fontSize: 15, fontWeight: 500, letterSpacing: '0.15em', fontFamily:"'Noto Sans TC', sans-serif", transition: 'all 300ms ease' },
-    foot: { marginTop: 56, fontFamily: "'Caveat', cursive", fontSize: 22, color: 'var(--forest-soft)' },
+  const introS = {
+    wrap:{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'48px 24px', animation:'fade 900ms ease both' },
+    inner:{ maxWidth:560, width:'100%', textAlign:'center' },
+    kicker:{ marginTop:28, fontSize:11, letterSpacing:'0.3em', color:'var(--forest-pale)', fontFamily:"'Noto Sans TC',sans-serif", fontWeight:500 },
+    h1:{ fontFamily:"'Noto Serif TC',serif", fontWeight:400, fontSize:'clamp(36px,6vw,56px)', lineHeight:1.25, margin:'20px 0 24px', color:'var(--ivory)', letterSpacing:'0.02em' },
+    sub:{ fontFamily:"'Noto Serif TC',serif", fontSize:16, lineHeight:1.95, color:'var(--forest-whisper)', margin:'0 0 36px', fontWeight:300 },
+    notesWrap:{ margin:'0 0 44px' },
+    notes:{ textAlign:'left', display:'inline-block', fontSize:14, color:'rgba(242,234,216,0.75)', lineHeight:2.2, fontFamily:"'Noto Sans TC',sans-serif", fontWeight:300 },
+    cta:{ background:'var(--ivory-warm)', color:'var(--forest-deep)', padding:'16px 48px', borderRadius:999, fontSize:15, fontWeight:500, letterSpacing:'0.15em', fontFamily:"'Noto Sans TC',sans-serif", transition:'all 300ms ease' },
+    foot:{ marginTop:56, fontFamily:"'Caveat',cursive", fontSize:22, color:'var(--forest-soft)' },
   };
 
-  /* ---------- Question Screen ---------- */
-  function QuestionScreen({ idx, total, q, initial, onNext, onBack }){
-    const [val, setVal] = useState(initial ?? (q.type==='multi'?[]:''));
-    const [key, setKey] = useState(idx);
-    useEffect(()=>{ setVal(initial ?? (q.type==='multi'?[]:'')); setKey(idx); }, [idx]);
+  /* ─────────────────────────────────────────
+     QUESTION SCREEN
+  ───────────────────────────────────────── */
+  function QuestionScreen({ idx, total, q, initial, onNext, onBack }) {
+    const [val, setVal] = useState(initial ?? (q.type==='multi' ? [] : ''));
+    useEffect(() => { setVal(initial ?? (q.type==='multi' ? [] : '')); }, [idx]);
 
-    const canNext = q.optional || (q.type==='multi' ? (val && val.length>0) : !!(val+'').trim());
+    const canNext = q.optional
+      ? true
+      : q.type === 'multi'
+        ? val && val.length > 0
+        : !!(val+'').trim();
 
     return (
-      <div style={qStyles.wrap} key={key}>
+      <div style={qS.wrap}>
         {/* top chrome */}
-        <div style={qStyles.top}>
-          <div style={qStyles.brand}>
+        <div style={qS.top}>
+          <div style={qS.brand}>
             <LogoMark size={22} />
-            <span style={qStyles.brandWord}>rewire</span>
+            <span style={qS.brandWord}>rewire</span>
           </div>
-          <div style={qStyles.dots}>
+          <div style={qS.dots}>
             {Array.from({length: total}).map((_,i) => (
               <div key={i} className={'dot ' + (i<idx?'done':i===idx?'active':'')} />
             ))}
           </div>
         </div>
 
-        <div style={qStyles.body}>
-          <div style={qStyles.layer}>{q.layer}</div>
-          <div style={qStyles.num}>{String(q.n).padStart(2,'0')} <span style={qStyles.numOf}>／ {String(total).padStart(2,'0')}</span></div>
-          <h2 style={qStyles.q}>{q.q}</h2>
-          <div style={qStyles.hint}>{q.hint}</div>
+        <div style={qS.body}>
+          <div style={qS.layer}>{q.layer}</div>
+          <div style={qS.num}>{String(q.n).padStart(2,'0')} <span style={qS.numOf}>／ {String(total).padStart(2,'0')}</span></div>
+          <h2 style={qS.q}>{q.q}</h2>
+          <div style={qS.hint}>{q.hint}</div>
 
-          <div style={qStyles.input}>
-            {q.type === 'text' && (
-              <textarea
-                value={val}
-                onChange={e=>setVal(e.target.value)}
-                placeholder={q.placeholder}
-                autoFocus
-                rows={3}
-                style={qStyles.textarea}
-              />
-            )}
-            {q.type === 'single' && (
-              <div style={qStyles.opts}>
-                {q.options.map(opt => (
-                  <button key={opt} style={optStyle(val===opt)} onClick={()=>setVal(opt)}>
-                    <span style={radioDot(val===opt)} />
+          {q.type === 'text' && (
+            <textarea value={val} onChange={e=>setVal(e.target.value)}
+              placeholder={q.placeholder} autoFocus rows={3} style={qS.textarea} />
+          )}
+          {q.type === 'single' && (
+            <div style={qS.opts}>
+              {q.options.map(opt => (
+                <button key={opt} style={optStyle(val===opt)} onClick={()=>setVal(opt)}>
+                  <span style={radioDot(val===opt)} />
+                  <span>{opt}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {q.type === 'multi' && (
+            <div style={qS.opts}>
+              {q.options.map(opt => {
+                const on = val.includes(opt);
+                return (
+                  <button key={opt} style={optStyle(on)} onClick={()=>setVal(on ? val.filter(x=>x!==opt) : [...val, opt])}>
+                    <span style={checkBox(on)}>{on && <Check/>}</span>
                     <span>{opt}</span>
                   </button>
-                ))}
-              </div>
-            )}
-            {q.type === 'multi' && (
-              <div style={qStyles.opts}>
-                {q.options.map(opt => {
-                  const on = val.includes(opt);
-                  return (
-                    <button key={opt} style={optStyle(on)} onClick={()=>{
-                      setVal(on ? val.filter(x=>x!==opt) : [...val, opt]);
-                    }}>
-                      <span style={checkBox(on)}>{on && <Check/>}</span>
-                      <span>{opt}</span>
-                    </button>
-                  );
-                })}
-                <div style={{fontSize:12, color:'rgba(242,234,216,0.5)', marginTop:6, fontFamily:"'Noto Sans TC', sans-serif"}}>可以複選</div>
-              </div>
-            )}
-          </div>
+                );
+              })}
+              <div style={{fontSize:12, color:'rgba(242,234,216,0.5)', marginTop:6, fontFamily:"'Noto Sans TC',sans-serif"}}>可以複選</div>
+            </div>
+          )}
         </div>
 
-        <div style={qStyles.foot}>
-          <button onClick={onBack} disabled={idx===0} style={{...qStyles.back, opacity: idx===0?0.25:0.65}}>← 上一題</button>
-          <button onClick={()=>onNext(val)} disabled={!canNext} style={{...qStyles.nextBtn, opacity: canNext?1:0.3, pointerEvents: canNext?'auto':'none'}}
+        <div style={qS.foot}>
+          <button onClick={onBack} disabled={idx===0} style={{...qS.back, opacity:idx===0?0.25:0.65}}>← 上一題</button>
+          <button onClick={()=>onNext(val)} disabled={!canNext}
+            style={{...qS.nextBtn, opacity:canNext?1:0.3, pointerEvents:canNext?'auto':'none'}}
             onMouseOver={e=>{ if(canNext) e.currentTarget.style.background='var(--ivory)'; }}
             onMouseOut={e=>{ if(canNext) e.currentTarget.style.background='var(--ivory-warm)'; }}>
-            {idx+1===total? '完成' : '下一題'} →
+            {idx+1===total ? '完成' : '下一題'} →
           </button>
-          {q.optional && !canNext && <button onClick={()=>onNext('')} style={qStyles.skip}>我想跳過這題</button>}
+          {q.optional && (
+            <button onClick={()=>onNext('')} style={qS.skip}>我想跳過這題</button>
+          )}
         </div>
       </div>
     );
@@ -648,70 +691,41 @@
     return <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1.5 5.2L4 7.5 8.8 2.5" stroke="var(--forest-deep)" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>;
   }
 
-  const qStyles = {
-    wrap:{ minHeight:'100vh', display:'flex', flexDirection:'column', padding:'32px clamp(24px, 5vw, 64px)', animation:'fade 700ms ease both' },
-    top:{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom: 28 },
+  const qS = {
+    wrap:{ minHeight:'100vh', display:'flex', flexDirection:'column', padding:'32px clamp(24px,5vw,64px)', animation:'fade 500ms ease both' },
+    top:{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom:28 },
     brand:{ display:'flex', alignItems:'center', gap:10 },
-    brandWord:{ fontFamily:"'Noto Serif TC', serif", fontSize:16, color:'var(--ivory)', letterSpacing:'0.02em' },
+    brandWord:{ fontFamily:"'Noto Serif TC',serif", fontSize:16, color:'var(--ivory)', letterSpacing:'0.02em' },
     dots:{ display:'flex', gap:8, alignItems:'center' },
-    body:{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', maxWidth: 720, width:'100%', margin:'0 auto', animation:'rise 700ms ease both' },
-    layer:{ fontSize:11, letterSpacing:'0.28em', color:'var(--forest-pale)', marginBottom:28, fontFamily:"'Noto Sans TC', sans-serif", fontWeight:500 },
-    num:{ fontFamily:"'Noto Serif TC', serif", fontSize:14, color:'rgba(242,234,216,0.45)', marginBottom:20, fontVariantNumeric:'tabular-nums' },
+    body:{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', maxWidth:720, width:'100%', margin:'0 auto', animation:'rise 500ms ease both' },
+    layer:{ fontSize:11, letterSpacing:'0.28em', color:'var(--forest-pale)', marginBottom:28, fontFamily:"'Noto Sans TC',sans-serif", fontWeight:500 },
+    num:{ fontFamily:"'Noto Serif TC',serif", fontSize:14, color:'rgba(242,234,216,0.45)', marginBottom:20 },
     numOf:{ color:'rgba(242,234,216,0.3)' },
-    q:{ fontFamily:"'Noto Serif TC', serif", fontWeight:400, fontSize:'clamp(26px, 3.6vw, 38px)', lineHeight:1.45, color:'var(--ivory)', margin:'0 0 18px', letterSpacing:'0.01em' },
-    hint:{ fontFamily:"'Noto Serif TC', serif", fontWeight:300, fontSize:15, lineHeight:1.8, color:'var(--forest-whisper)', marginBottom:40, fontStyle:'italic' },
-    input:{},
-    textarea:{ width:'100%', background:'transparent', border:'none', borderBottom:'1px solid rgba(242,234,216,0.25)', color:'var(--ivory)', fontFamily:"'Noto Serif TC', serif", fontSize:19, lineHeight:1.8, padding:'14px 0', outline:'none', resize:'vertical', minHeight: 80 },
+    q:{ fontFamily:"'Noto Serif TC',serif", fontWeight:400, fontSize:'clamp(24px,3.4vw,36px)', lineHeight:1.55, color:'var(--ivory)', margin:'0 0 16px', letterSpacing:'0.01em', whiteSpace:'pre-line' },
+    hint:{ fontFamily:"'Noto Serif TC',serif", fontWeight:300, fontSize:14, lineHeight:1.8, color:'var(--forest-whisper)', marginBottom:36, fontStyle:'italic' },
+    textarea:{ width:'100%', background:'transparent', border:'none', borderBottom:'1px solid rgba(242,234,216,0.25)', color:'var(--ivory)', fontFamily:"'Noto Serif TC',serif", fontSize:18, lineHeight:1.8, padding:'14px 0', outline:'none', resize:'vertical', minHeight:80 },
     opts:{ display:'flex', flexDirection:'column', gap:10 },
-    foot:{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:16, paddingTop: 36, maxWidth:720, width:'100%', margin:'0 auto', flexWrap:'wrap' },
-    back:{ fontSize:14, color:'var(--forest-whisper)', fontFamily:"'Noto Sans TC', sans-serif", padding:'10px 4px' },
-    nextBtn:{ background:'var(--ivory-warm)', color:'var(--forest-deep)', padding:'14px 36px', borderRadius:999, fontSize:14, fontWeight:500, letterSpacing:'0.14em', fontFamily:"'Noto Sans TC', sans-serif", transition:'background 300ms ease' },
-    skip:{ fontSize:13, color:'rgba(242,234,216,0.4)', fontFamily:"'Noto Sans TC', sans-serif", textDecoration:'underline', marginLeft:'auto', padding:'10px 4px' },
+    foot:{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:16, paddingTop:36, maxWidth:720, width:'100%', margin:'0 auto', flexWrap:'wrap' },
+    back:{ fontSize:14, color:'var(--forest-whisper)', fontFamily:"'Noto Sans TC',sans-serif", padding:'10px 4px' },
+    nextBtn:{ background:'var(--ivory-warm)', color:'var(--forest-deep)', padding:'14px 36px', borderRadius:999, fontSize:14, fontWeight:500, letterSpacing:'0.14em', fontFamily:"'Noto Sans TC',sans-serif", transition:'background 300ms ease' },
+    skip:{ fontSize:13, color:'rgba(242,234,216,0.4)', fontFamily:"'Noto Sans TC',sans-serif", textDecoration:'underline', padding:'10px 4px' },
   };
 
   function optStyle(on){
-    return {
-      textAlign:'left', display:'flex', alignItems:'center', gap:14,
-      padding:'16px 20px',
-      background: on ? 'rgba(242,234,216,0.1)' : 'rgba(242,234,216,0.03)',
-      border: '1px solid ' + (on ? 'rgba(242,234,216,0.45)' : 'rgba(242,234,216,0.12)'),
-      borderRadius: 14,
-      color: 'var(--ivory)',
-      fontFamily: "'Noto Serif TC', serif",
-      fontSize: 16,
-      lineHeight: 1.5,
-      transition: 'all 220ms ease',
-    };
+    return { textAlign:'left', display:'flex', alignItems:'center', gap:14, padding:'15px 20px', background:on?'rgba(242,234,216,0.1)':'rgba(242,234,216,0.03)', border:'1px solid '+(on?'rgba(242,234,216,0.45)':'rgba(242,234,216,0.12)'), borderRadius:12, color:'var(--ivory)', fontFamily:"'Noto Serif TC',serif", fontSize:15, lineHeight:1.55, transition:'all 220ms ease', cursor:'pointer' };
   }
   function radioDot(on){
-    return {
-      flex:'0 0 auto',
-      width:16, height:16, borderRadius:'50%',
-      border:'1px solid ' + (on?'var(--ivory)':'rgba(242,234,216,0.35)'),
-      background: on ? 'var(--ivory)' : 'transparent',
-      boxShadow: on ? 'inset 0 0 0 3px var(--forest-deep)' : 'none',
-      transition:'all 220ms ease',
-    };
+    return { flex:'0 0 auto', width:16, height:16, borderRadius:'50%', border:'1px solid '+(on?'var(--ivory)':'rgba(242,234,216,0.35)'), background:on?'var(--ivory)':'transparent', boxShadow:on?'inset 0 0 0 3px var(--forest-deep)':'none', transition:'all 220ms ease' };
   }
   function checkBox(on){
-    return {
-      flex:'0 0 auto',
-      width:18, height:18, borderRadius:5,
-      border:'1px solid ' + (on?'var(--ivory)':'rgba(242,234,216,0.35)'),
-      background: on ? 'var(--ivory)' : 'transparent',
-      display:'inline-flex', alignItems:'center', justifyContent:'center',
-      transition:'all 220ms ease',
-    };
+    return { flex:'0 0 auto', width:18, height:18, borderRadius:5, border:'1px solid '+(on?'var(--ivory)':'rgba(242,234,216,0.35)'), background:on?'var(--ivory)':'transparent', display:'inline-flex', alignItems:'center', justifyContent:'center', transition:'all 220ms ease' };
   }
 
-  /* ---------- Computing ---------- */
-  function Computing(){
-    const steps = [
-      '正在讀你的答案⋯',
-      '正在對照你描述的身體訊號⋯',
-      '正在找出那條最常跑的迴路⋯',
-      'Karen 正在為你寫這封信⋯',
-    ];
+  /* ─────────────────────────────────────────
+     COMPUTING
+  ───────────────────────────────────────── */
+  function Computing() {
+    const steps = ['正在讀你的答案⋯','正在對照你描述的身體訊號⋯','正在找出那條最常跑的迴路⋯','Karen 正在為你寫這封信⋯'];
     const [i, setI] = useState(0);
     useEffect(() => {
       const t = setInterval(() => setI(x => Math.min(x+1, steps.length-1)), 900);
@@ -720,21 +734,22 @@
     return (
       <div style={{minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32, animation:'fade 600ms ease both'}}>
         <div style={{width:90, height:90, borderRadius:'50%', background:'radial-gradient(circle, var(--forest-mid) 0%, var(--forest-deep) 70%)', animation:'breathe 2.4s ease-in-out infinite', boxShadow:'0 0 60px rgba(122,150,116,0.3)'}}/>
-        <div style={{marginTop:56, fontFamily:"'Noto Serif TC', serif", fontSize: 16, color:'var(--forest-whisper)', letterSpacing:'0.04em', textAlign:'center', fontStyle:'italic', minHeight: 28, transition:'opacity 300ms ease'}} key={i}>
+        <div style={{marginTop:56, fontFamily:"'Noto Serif TC',serif", fontSize:16, color:'var(--forest-whisper)', letterSpacing:'0.04em', textAlign:'center', fontStyle:'italic', minHeight:28}} key={i}>
           {steps[i]}
         </div>
       </div>
     );
   }
 
-  /* ---------- Report ---------- */
-  function Report({ answers }){
+  /* ─────────────────────────────────────────
+     REPORT
+  ───────────────────────────────────────── */
+  function Report({ answers }) {
     const report = useMemo(() => pickType(answers), [answers]);
     const { out, done, skip } = useTypewriter(report.letter, 30, 600);
     const letterRef = useRef(null);
     const [storyOpen, setStoryOpen] = useState(false);
 
-    // auto-scroll the letter container as text grows
     useEffect(() => {
       if (letterRef.current && !done) {
         letterRef.current.scrollTop = letterRef.current.scrollHeight;
@@ -744,149 +759,290 @@
     const handleRestart = () => window.location.reload();
 
     return (
-      <div style={rStyles.wrap}>
-        {/* ambient light */}
-        <div style={rStyles.glow} />
-
-        <div style={rStyles.page}>
+      <div style={rS.wrap}>
+        <div style={rS.glow} />
+        <div style={rS.page}>
           {/* header */}
-          <header style={rStyles.head}>
-            <div style={rStyles.headBrand}>
+          <header style={rS.head}>
+            <div style={rS.headBrand}>
               <LogoMark size={28} />
-              <span style={{fontFamily:"'Noto Serif TC', serif", fontSize:15, letterSpacing:'0.02em', color:'var(--ink)'}}>rewire</span>
+              <span style={{fontFamily:"'Noto Serif TC',serif", fontSize:15, letterSpacing:'0.02em', color:'var(--ink)'}}>rewire</span>
             </div>
-            <div style={rStyles.headMeta}>你的神經類型報告 · 2026</div>
+            <div style={rS.headMeta}>你的神經類型報告 · 2026</div>
           </header>
 
           {/* type banner */}
-          <section style={rStyles.banner}>
-            <div style={rStyles.typeLabel}>你的神經類型</div>
-            <h1 style={rStyles.typeName}>{report.typeZh}</h1>
-            <div style={rStyles.typeEn}>{report.type}</div>
-            <div style={rStyles.typeTag}>{report.tag}</div>
-
-            {/* trait bars */}
-            <div style={rStyles.bars}>
+          <section style={rS.banner}>
+            <div style={rS.typeLabel}>你的神經類型</div>
+            <h1 style={rS.typeName}>{report.typeZh}</h1>
+            <div style={rS.typeEn}>{report.type}</div>
+            <div style={rS.typeTag}>{report.tag}</div>
+            <div style={rS.bars}>
               {report.bars.map(([label,val]) => <Bar key={label} label={label} value={val}/>)}
             </div>
           </section>
 
           {/* letter */}
-          <section style={rStyles.letterSect}>
-            <div style={rStyles.letterHead}>
-              <div style={rStyles.dearLabel}>一封給你的信</div>
-              <button style={rStyles.skipBtn} onClick={skip} disabled={done}>
+          <section style={rS.letterSect}>
+            <div style={rS.letterHead}>
+              <div style={rS.dearLabel}>一封給你的信</div>
+              <button style={rS.skipBtn} onClick={skip} disabled={done}>
                 {done ? '' : '直接看完整內容'}
               </button>
             </div>
-
-            <div ref={letterRef} style={rStyles.letter}>
+            <div ref={letterRef} style={rS.letter}>
               {out.map((line, i) => (
-                <p key={i} style={{
-                  ...rStyles.line,
-                  // highlight Week rows
-                  ...(line.startsWith('Week ') ? rStyles.weekLine : {}),
-                }}>
+                <p key={i} style={rS.line}>
                   {line || '\u00A0'}
-                  {!done && i === out.length - 1 && line && <span className="caret"/>}
+                  {!done && i === out.length-1 && line && <span className="caret"/>}
                 </p>
               ))}
             </div>
 
-            {/* signature reveal */}
-            <div style={{...rStyles.sigWrap, opacity: done?1:0, transform: done?'translateY(0)':'translateY(12px)', transition:'all 900ms ease 200ms'}}>
-              <div style={rStyles.sigDivider}/>
-              <div style={rStyles.sigRow}>
-                <div style={rStyles.sigText}>
-                  <div style={rStyles.sigHand}>
-                    Karen <HeartIcon/>
-                  </div>
-                  <div style={rStyles.sigName}>陳穆萱 · Rewire 創辦人</div>
-                  <div style={rStyles.sigLine}>「我不是站在山頂叫你爬上來，我是回頭拉你的人。」</div>
+            {/* signature */}
+            <div style={{...rS.sigWrap, opacity:done?1:0, transform:done?'translateY(0)':'translateY(12px)', transition:'all 900ms ease 200ms'}}>
+              <div style={rS.sigDivider}/>
+              <div style={rS.sigRow}>
+                <div style={rS.sigText}>
+                  <div style={rS.sigHand}>Karen <HeartIcon/></div>
+                  <div style={rS.sigName}>陳穆萱 · Rewire 創辦人</div>
+                  <div style={rS.sigLine}>「我不是站在山頂叫你爬上來，我是回頭拉你的人。」</div>
                 </div>
-                <div style={rStyles.portraitWrap}>
-                  <div style={rStyles.portraitRing}/>
-                  <img src="karen-portrait.png" alt="Karen" style={rStyles.portrait}/>
+                <div style={rS.portraitWrap}>
+                  <div style={rS.portraitRing}/>
+                  <img src="karen-portrait.png" alt="Karen" style={rS.portrait} onError={e=>{e.target.style.display='none'}}/>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* next steps — only after letter is done */}
-          <section style={{...rStyles.next, opacity: done?1:0, transform: done?'translateY(0)':'translateY(16px)', transition:'all 900ms ease 700ms', pointerEvents: done?'auto':'none'}}>
-            <div style={rStyles.nextTitle}>21 天 · 從這裡開始</div>
-            <div style={rStyles.weeks}>
-              {report.weeks.map((w,i) => <WeekCard key={i} n={i+1} title={w.t} desc={w.d} />)}
-            </div>
-
-            <div style={rStyles.ctaRow}>
-              <button style={rStyles.ctaPrimary}
-                onMouseOver={e=>e.currentTarget.style.background='var(--forest-deep)'}
-                onMouseOut={e=>e.currentTarget.style.background='var(--forest)'}>
-                開始 21 天計畫 →
+          {/* CTA */}
+          <section style={{...rS.cta, opacity:done?1:0, transform:done?'translateY(0)':'translateY(16px)', transition:'all 900ms ease 700ms', pointerEvents:done?'auto':'none'}}>
+            <div style={rS.ctaRow}>
+              <button style={rS.ctaStory} onClick={()=>setStoryOpen(true)}>
+                <ShareIcon/> 分享到 IG 限動
               </button>
-              <button style={rStyles.ctaShare} onClick={()=>setStoryOpen(true)}>
-                <ShareIcon/> 生成 IG Story
-              </button>
-              <button style={rStyles.ctaGhost} onClick={handleRestart}>重新評估</button>
+              <button style={rS.ctaGhost} onClick={handleRestart}>重新評估</button>
             </div>
-
-            <div style={rStyles.igRow}>
-              <div style={rStyles.igText}>
-                <div style={rStyles.igKicker}>每週看 Karen 更新</div>
-                <a href="https://instagram.com/my.rewire" target="_blank" rel="noopener" style={rStyles.igLink}>
-                  @my.rewire
-                  <span style={rStyles.igArrow}>↗</span>
+            <div style={rS.igRow}>
+              <div>
+                <div style={rS.igKicker}>每週看 Karen 更新</div>
+                <a href="https://instagram.com/my.rewire" target="_blank" rel="noopener" style={rS.igLink}>
+                  @my.rewire <span style={{fontSize:20, color:'var(--forest-mid)'}}>↗</span>
                 </a>
               </div>
             </div>
-
-            <div style={rStyles.disclaimer}>
+            <div style={rS.disclaimer}>
               這份報告是 Rewire 的陪伴起點，不替代心理治療。<br/>
               如果你正在經歷嚴重情緒困擾，請聯繫專業支援。
             </div>
           </section>
         </div>
 
-        {storyOpen && <StoryModal onClose={()=>setStoryOpen(false)} report={report} />}
+        {storyOpen && <StoryModal report={report} onClose={()=>setStoryOpen(false)} />}
       </div>
     );
   }
 
-  function Bar({ label, value }){
-    const [w, setW] = useState(0);
+  /* ─────────────────────────────────────────
+     STORY MODAL
+  ───────────────────────────────────────── */
+  function ShareIcon(){
+    return (
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'-1px'}}>
+        <path d="M8 10V2M8 2L5 5M8 2l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M3 9v4a1 1 0 001 1h8a1 1 0 001-1V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    );
+  }
+
+  function StoryModal({ report, onClose }) {
+    const cardRef = useRef(null);
+    const [busy, setBusy] = useState(false);
+    const [scale, setScale] = useState(0.28);
+
     useEffect(() => {
-      const t = setTimeout(() => setW(value), 400);
-      return () => clearTimeout(t);
+      const fit = () => {
+        const vh = window.innerHeight - 200;
+        const vw = window.innerWidth - 64;
+        setScale(Math.min(vh / 1920, vw / 1080, 0.38));
+      };
+      fit();
+      window.addEventListener('resize', fit);
+      return () => window.removeEventListener('resize', fit);
     }, []);
+
+    const download = async () => {
+      if (!cardRef.current) return;
+      setBusy(true);
+      try {
+        // Use html2canvas if available, otherwise show instruction
+        if (window.html2canvas) {
+          const canvas = await window.html2canvas(cardRef.current, {
+            backgroundColor: null, scale: 2, useCORS: true,
+            width: 1080, height: 1920, windowWidth: 1080, windowHeight: 1920,
+          });
+          const link = document.createElement('a');
+          link.download = `rewire-${report.key}-story.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        } else {
+          alert('請長按圖片儲存，或截圖後裁切後分享到 IG 限動。');
+        }
+      } catch(e){ console.error(e); }
+      setBusy(false);
+    };
+
     return (
-      <div style={{marginBottom: 14}}>
-        <div style={{display:'flex', justifyContent:'space-between', fontFamily:"'Noto Sans TC', sans-serif", fontSize:12, color:'var(--ink-soft)', marginBottom:6, letterSpacing:'0.04em'}}>
-          <span>{label}</span>
-          <span style={{fontVariantNumeric:'tabular-nums', color:'var(--ink-muted)'}}>{value}</span>
-        </div>
-        <div style={{height: 3, background:'rgba(61,90,58,0.12)', borderRadius: 99, overflow:'hidden'}}>
-          <div style={{height:'100%', width: w+'%', background:'var(--forest)', transition:'width 1200ms cubic-bezier(.2,.8,.2,1)'}}/>
+      <div style={mS.backdrop} onClick={onClose}>
+        <div style={mS.modal} onClick={e=>e.stopPropagation()}>
+          <div style={mS.header}>
+            <div style={mS.title}>IG Story · 1080 × 1920</div>
+            <button style={mS.close} onClick={onClose}>✕</button>
+          </div>
+
+          {/* Preview */}
+          <div style={{display:'flex', justifyContent:'center', overflow:'hidden', height: 1920*scale+4}}>
+            <div style={{transform:`scale(${scale})`, transformOrigin:'top center', flexShrink:0}}>
+              <StoryCard cardRef={cardRef} report={report}/>
+            </div>
+          </div>
+
+          <div style={mS.actions}>
+            <button style={mS.dlBtn} onClick={download} disabled={busy}>
+              {busy ? '生成中⋯' : '下載圖片'}
+            </button>
+            <div style={mS.hint}>
+              下載後 → 打開 IG → 新增限動 → 選圖片<br/>
+              記得標記 <strong>@my.rewire</strong>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  function WeekCard({ n, title, desc }){
+  function StoryCard({ cardRef, report }) {
     return (
-      <div style={weekStyles.card}>
-        <div style={weekStyles.num}>Week {n}</div>
-        <div style={weekStyles.title}>{title}</div>
-        <div style={weekStyles.desc}>{desc}</div>
+      <div ref={cardRef} style={stS.card}>
+        {/* Background arches SVG */}
+        <svg viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice"
+          style={{position:'absolute',inset:0,width:'100%',height:'100%'}}>
+          <rect width="1080" height="1920" fill="#2d3f26"/>
+          <path d="M-200 1920 Q540 500 1280 1920 Z" fill="#3d5a3a"/>
+          <path d="M-100 1920 Q540 760 1180 1920 Z" fill="#4d6c47"/>
+          <path d="M0 1920 Q540 1000 1080 1920 Z" fill="#577851" opacity="0.9"/>
+          <path d="M120 1920 Q540 1220 960 1920 Z" fill="#7a9674" opacity="0.85"/>
+          <path d="M300 1920 Q540 1440 780 1920 Z" fill="#b8cdb2" opacity="0.7"/>
+          <path d="M480 1920 Q540 1680 600 1920 Z" fill="#e3ecc9" opacity="0.8"/>
+          {/* subtle top glow */}
+          <ellipse cx="540" cy="0" rx="500" ry="300" fill="rgba(184,205,178,0.08)"/>
+        </svg>
+
+        {/* Brand top */}
+        <div style={stS.brand}>
+          <svg width="64" height="64" viewBox="0 0 64 64" style={{borderRadius:11,display:'block',flexShrink:0}}>
+            <rect width="64" height="64" rx="11" fill="#3d5a3a"/>
+            <path d="M4 60 Q32 20 60 60 Z" fill="#4d6c47"/>
+            <path d="M10 60 Q32 26 54 60 Z" fill="#618360"/>
+            <path d="M16 60 Q32 32 48 60 Z" fill="#7a9674"/>
+            <path d="M22 60 Q32 38 42 60 Z" fill="#b8cdb2"/>
+            <path d="M28 60 Q32 44 36 60 Z" fill="#e3ecc9"/>
+            <text x="32" y="24" textAnchor="middle" fill="#f2ead8"
+              style={{fontFamily:"'Noto Serif TC',serif",fontSize:14,fontWeight:400}}>rewire</text>
+          </svg>
+          <div>
+            <div style={stS.brandLine}>REWIRE · 神經地圖</div>
+            <div style={stS.brandSub}>NEURAL TYPE REPORT</div>
+          </div>
+        </div>
+
+        {/* Type display */}
+        <div style={stS.typeBlock}>
+          <div style={stS.typeLabel}>我的神經類型</div>
+          <div style={stS.typeName}>{report.typeZh}</div>
+          <div style={stS.typeEn}>{report.type}</div>
+        </div>
+
+        {/* Quote */}
+        <div style={stS.quoteBlock}>
+          <div style={stS.quoteLine}/>
+          <div style={stS.quoteText}>
+            「{report.tag.replace(/^你的舊程式是：/, '')}」
+          </div>
+          <div style={stS.quoteSub}>— 我大腦裡跑了很久的舊程式</div>
+        </div>
+
+        {/* Reframe */}
+        <div style={stS.reframe}>
+          <div style={stS.reframeLabel}>我正在改寫它</div>
+          <div style={stS.reframeLine}>不是改變，是改寫。</div>
+        </div>
+
+        {/* Footer */}
+        <div style={stS.footer}>
+          <div>
+            <div style={stS.footerKicker}>一起 rewire</div>
+            <div style={stS.footerIg}>@my.rewire</div>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <div style={stS.footerCtaSmall}>7 分鐘測你的</div>
+            <div style={stS.footerCtaBig}>神經地圖 →</div>
+          </div>
+        </div>
       </div>
     );
   }
-  const weekStyles = {
-    card:{ background:'rgba(61,90,58,0.04)', border:'1px solid rgba(61,90,58,0.14)', borderRadius: 16, padding:'24px 22px', flex:1, minWidth: 220 },
-    num:{ fontSize:11, letterSpacing:'0.24em', color:'var(--forest)', fontFamily:"'Noto Sans TC', sans-serif", fontWeight:500, marginBottom:14 },
-    title:{ fontFamily:"'Noto Serif TC', serif", fontSize:24, color:'var(--ink)', marginBottom:10, fontWeight:500 },
-    desc:{ fontFamily:"'Noto Serif TC', serif", fontSize:14, lineHeight:1.85, color:'var(--ink-soft)', fontWeight:300 },
+
+  const stS = {
+    card:{ position:'relative', width:1080, height:1920, overflow:'hidden', fontFamily:"'Noto Serif TC',serif", color:'#f2ead8' },
+    brand:{ position:'absolute', top:88, left:80, display:'flex', alignItems:'center', gap:24, zIndex:2 },
+    brandLine:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:20, letterSpacing:'0.3em', color:'#d9e4d5', fontWeight:500 },
+    brandSub:{ fontFamily:"'Caveat',cursive", fontSize:26, color:'#b8cdb2', marginTop:4 },
+    typeBlock:{ position:'absolute', top:300, left:80, right:80, zIndex:2 },
+    typeLabel:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:20, letterSpacing:'0.3em', color:'#b8cdb2', marginBottom:32, fontWeight:500 },
+    typeName:{ fontSize:210, lineHeight:0.92, fontWeight:500, color:'#f2ead8', letterSpacing:'0.01em', marginBottom:20 },
+    typeEn:{ fontFamily:"'Caveat',cursive", fontSize:78, color:'rgba(242,234,216,0.75)', fontWeight:500 },
+    quoteBlock:{ position:'absolute', top:900, left:80, right:80, zIndex:2 },
+    quoteLine:{ width:40, height:2, background:'rgba(184,205,178,0.6)', marginBottom:32 },
+    quoteText:{ fontSize:54, lineHeight:1.55, fontWeight:400, color:'#f2ead8', fontStyle:'italic', letterSpacing:'0.01em', marginBottom:28 },
+    quoteSub:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:20, color:'rgba(242,234,216,0.5)', fontWeight:300 },
+    reframe:{ position:'absolute', top:1360, left:80, right:80, zIndex:2 },
+    reframeLabel:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:20, letterSpacing:'0.3em', color:'#b8cdb2', marginBottom:20, fontWeight:500 },
+    reframeLine:{ fontFamily:"'Caveat',cursive", fontSize:100, color:'#f2ead8', fontWeight:600, lineHeight:1 },
+    footer:{ position:'absolute', bottom:80, left:80, right:80, display:'flex', justifyContent:'space-between', alignItems:'flex-end', zIndex:2, borderTop:'1px solid rgba(242,234,216,0.15)', paddingTop:32 },
+    footerKicker:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:18, letterSpacing:'0.2em', color:'rgba(242,234,216,0.5)', marginBottom:10, fontWeight:300 },
+    footerIg:{ fontFamily:"'Caveat',cursive", fontSize:72, color:'#f2ead8', fontWeight:600, lineHeight:1 },
+    footerCtaSmall:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:18, color:'rgba(242,234,216,0.6)', fontWeight:300, marginBottom:6 },
+    footerCtaBig:{ fontFamily:"'Noto Serif TC',serif", fontSize:32, color:'#f2ead8', fontWeight:500 },
   };
+
+  const mS = {
+    backdrop:{ position:'fixed', inset:0, background:'rgba(15,22,14,0.88)', backdropFilter:'blur(10px)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16, animation:'fade 300ms ease both' },
+    modal:{ maxWidth:480, width:'100%', display:'flex', flexDirection:'column', gap:16, maxHeight:'100vh', overflow:'auto' },
+    header:{ display:'flex', justifyContent:'space-between', alignItems:'center' },
+    title:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:12, letterSpacing:'0.25em', color:'var(--forest-pale)', fontWeight:500 },
+    close:{ color:'var(--ivory)', fontSize:20, padding:'4px 10px', opacity:0.6, cursor:'pointer' },
+    actions:{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, paddingBottom:8 },
+    dlBtn:{ background:'var(--ivory-warm)', color:'var(--forest-deep)', padding:'16px 48px', borderRadius:999, fontSize:14, fontWeight:500, letterSpacing:'0.14em', fontFamily:"'Noto Sans TC',sans-serif", cursor:'pointer', border:'none' },
+    hint:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:12, color:'rgba(242,234,216,0.55)', textAlign:'center', lineHeight:1.8, fontWeight:300 },
+  };
+
+  function Bar({ label, value }) {
+    const [w, setW] = useState(0);
+    useEffect(() => { const t = setTimeout(() => setW(value), 400); return () => clearTimeout(t); }, []);
+    return (
+      <div style={{marginBottom:14}}>
+        <div style={{display:'flex', justifyContent:'space-between', fontFamily:"'Noto Sans TC',sans-serif", fontSize:12, color:'var(--ink-soft)', marginBottom:6, letterSpacing:'0.04em'}}>
+          <span>{label}</span>
+          <span style={{color:'var(--ink-muted)'}}>{value}</span>
+        </div>
+        <div style={{height:3, background:'rgba(61,90,58,0.12)', borderRadius:99, overflow:'hidden'}}>
+          <div style={{height:'100%', width:w+'%', background:'var(--forest)', transition:'width 1200ms cubic-bezier(.2,.8,.2,1)'}}/>
+        </div>
+      </div>
+    );
+  }
 
   function HeartIcon(){
     return (
@@ -897,254 +1053,64 @@
     );
   }
 
-  function ShareIcon(){
-    return (
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-        <path d="M8 10V2M8 2L5 5M8 2l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M3 9v4a1 1 0 001 1h8a1 1 0 001-1V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    );
-  }
-
-  const rStyles = {
+  const rS = {
     wrap:{ minHeight:'100vh', padding:'40px 20px 80px', position:'relative', animation:'fade 900ms ease both' },
     glow:{ position:'fixed', top:'-20%', left:'50%', transform:'translateX(-50%)', width:'80vw', height:'80vw', maxWidth:800, maxHeight:800, background:'radial-gradient(circle, rgba(184,205,178,0.12) 0%, transparent 60%)', pointerEvents:'none', zIndex:0 },
-    page:{ maxWidth: 760, margin:'0 auto', background:'var(--paper)', borderRadius: 20, padding:'56px clamp(28px, 5vw, 64px) 64px', boxShadow:'0 40px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(242,234,216,0.06)', position:'relative', zIndex:1, color:'var(--ink)' },
-    head:{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom: 28, borderBottom:'1px solid rgba(61,90,58,0.12)', marginBottom: 36 },
+    page:{ maxWidth:760, margin:'0 auto', background:'var(--paper)', borderRadius:20, padding:'56px clamp(28px,5vw,64px) 64px', boxShadow:'0 40px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(242,234,216,0.06)', position:'relative', zIndex:1, color:'var(--ink)' },
+    head:{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom:28, borderBottom:'1px solid rgba(61,90,58,0.12)', marginBottom:36 },
     headBrand:{ display:'flex', alignItems:'center', gap:10 },
-    headMeta:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:11, letterSpacing:'0.22em', color:'var(--ink-muted)', fontWeight:400 },
+    headMeta:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:11, letterSpacing:'0.22em', color:'var(--ink-muted)', fontWeight:400 },
     banner:{ marginBottom:56 },
-    typeLabel:{ fontSize:11, letterSpacing:'0.3em', color:'var(--forest)', fontFamily:"'Noto Sans TC', sans-serif", fontWeight:500, marginBottom:14 },
-    typeName:{ fontFamily:"'Noto Serif TC', serif", fontWeight:500, fontSize:'clamp(48px, 7vw, 72px)', lineHeight:1, margin:'0 0 8px', color:'var(--forest-deep)', letterSpacing:'0.01em' },
-    typeEn:{ fontFamily:"'Caveat', cursive", fontSize:32, color:'var(--forest-mid)', marginBottom:22 },
-    typeTag:{ fontFamily:"'Noto Serif TC', serif", fontSize:18, lineHeight:1.7, color:'var(--ink-soft)', fontStyle:'italic', paddingLeft: 16, borderLeft:'2px solid var(--forest-pale)', marginBottom:34 },
+    typeLabel:{ fontSize:11, letterSpacing:'0.3em', color:'var(--forest)', fontFamily:"'Noto Sans TC',sans-serif", fontWeight:500, marginBottom:14 },
+    typeName:{ fontFamily:"'Noto Serif TC',serif", fontWeight:500, fontSize:'clamp(48px,7vw,72px)', lineHeight:1, margin:'0 0 8px', color:'var(--forest-deep)', letterSpacing:'0.01em' },
+    typeEn:{ fontFamily:"'Caveat',cursive", fontSize:32, color:'var(--forest-mid)', marginBottom:22 },
+    typeTag:{ fontFamily:"'Noto Serif TC',serif", fontSize:17, lineHeight:1.7, color:'var(--ink-soft)', fontStyle:'italic', paddingLeft:16, borderLeft:'2px solid var(--forest-pale)', marginBottom:34 },
     bars:{ marginTop:24 },
-    letterSect:{ marginBottom: 56 },
-    letterHead:{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom: 24 },
-    dearLabel:{ fontSize:11, letterSpacing:'0.3em', color:'var(--forest)', fontFamily:"'Noto Sans TC', sans-serif", fontWeight:500 },
-    skipBtn:{ fontSize:12, color:'var(--ink-muted)', fontFamily:"'Noto Sans TC', sans-serif", textDecoration:'underline' },
-    letter:{ fontFamily:"'Noto Serif TC', serif", fontSize: 16.5, lineHeight: 2.05, color:'var(--ink)', fontWeight: 400, minHeight: 200 },
+    letterSect:{ marginBottom:56 },
+    letterHead:{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:24 },
+    dearLabel:{ fontSize:11, letterSpacing:'0.3em', color:'var(--forest)', fontFamily:"'Noto Sans TC',sans-serif", fontWeight:500 },
+    skipBtn:{ fontSize:12, color:'var(--ink-muted)', fontFamily:"'Noto Sans TC',sans-serif", textDecoration:'underline', cursor:'pointer' },
+    letter:{ fontFamily:"'Noto Serif TC',serif", fontSize:16.5, lineHeight:2.05, color:'var(--ink)', fontWeight:400, minHeight:200 },
     line:{ margin:'0 0 2px', letterSpacing:'0.01em' },
-    weekLine:{ fontFamily:"'Noto Serif TC', serif", fontWeight:500, color:'var(--forest-deep)', padding:'6px 0' },
-    sigWrap:{ marginTop: 44 },
+    sigWrap:{ marginTop:44 },
     sigDivider:{ height:1, background:'linear-gradient(to right, transparent, rgba(61,90,58,0.25), transparent)', marginBottom:32 },
     sigRow:{ display:'flex', gap:32, alignItems:'center', flexWrap:'wrap' },
-    sigText:{ flex:1, minWidth: 220 },
-    sigHand:{ fontFamily:"'Caveat', cursive", fontSize: 56, fontWeight: 600, color:'var(--forest-deep)', lineHeight:1, marginBottom:14, letterSpacing:'0.02em' },
-    sigName:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize: 13, color:'var(--ink-muted)', letterSpacing:'0.06em', marginBottom:12 },
-    sigLine:{ fontFamily:"'Noto Serif TC', serif", fontSize:14, color:'var(--ink-soft)', fontStyle:'italic', lineHeight:1.7, fontWeight: 300 },
-    portraitWrap:{ position:'relative', width: 140, height: 140, flex:'0 0 140px' },
+    sigText:{ flex:1, minWidth:220 },
+    sigHand:{ fontFamily:"'Caveat',cursive", fontSize:56, fontWeight:600, color:'var(--forest-deep)', lineHeight:1, marginBottom:14, letterSpacing:'0.02em' },
+    sigName:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:13, color:'var(--ink-muted)', letterSpacing:'0.06em', marginBottom:12 },
+    sigLine:{ fontFamily:"'Noto Serif TC',serif", fontSize:14, color:'var(--ink-soft)', fontStyle:'italic', lineHeight:1.7, fontWeight:300 },
+    portraitWrap:{ position:'relative', width:140, height:140, flex:'0 0 140px' },
     portraitRing:{ position:'absolute', inset:-6, borderRadius:'50%', border:'1px solid rgba(61,90,58,0.2)' },
     portrait:{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover', objectPosition:'50% 40%', display:'block' },
-    next:{ borderTop:'1px solid rgba(61,90,58,0.12)', paddingTop:44 },
-    nextTitle:{ fontFamily:"'Noto Serif TC', serif", fontSize:22, color:'var(--ink)', marginBottom:24, fontWeight:500, letterSpacing:'0.02em' },
-    weeks:{ display:'flex', gap:14, flexWrap:'wrap', marginBottom: 36 },
-    ctaRow:{ display:'flex', gap:14, alignItems:'center', flexWrap:'wrap' },
-    ctaPrimary:{ background:'var(--forest)', color:'var(--ivory)', padding:'15px 34px', borderRadius:999, fontSize:14, fontWeight:500, letterSpacing:'0.14em', fontFamily:"'Noto Sans TC', sans-serif", transition:'background 300ms ease' },
-    ctaGhost:{ color:'var(--ink-soft)', padding:'15px 10px', fontSize:14, letterSpacing:'0.08em', fontFamily:"'Noto Sans TC', sans-serif", textDecoration:'underline' },
-    ctaShare:{ background:'transparent', color:'var(--forest-deep)', padding:'14px 26px', borderRadius:999, fontSize:14, fontWeight:500, letterSpacing:'0.12em', fontFamily:"'Noto Sans TC', sans-serif", border:'1px solid rgba(61,90,58,0.35)', display:'inline-flex', alignItems:'center', gap:8, transition:'all 300ms ease' },
-    disclaimer:{ marginTop:32, fontSize:12, lineHeight:1.8, color:'var(--ink-muted)', fontFamily:"'Noto Sans TC', sans-serif", fontWeight:300 },
-    igRow:{ marginTop:40, padding:'24px 26px', background:'rgba(61,90,58,0.06)', border:'1px solid rgba(61,90,58,0.14)', borderRadius:14, display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 },
-    igText:{ display:'flex', flexDirection:'column', gap:4 },
-    igKicker:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:11, letterSpacing:'0.22em', color:'var(--ink-muted)', fontWeight:500 },
-    igLink:{ fontFamily:"'Caveat', cursive", fontSize:38, color:'var(--forest-deep)', textDecoration:'none', fontWeight:600, display:'inline-flex', alignItems:'center', gap:10, lineHeight:1 },
-    igArrow:{ fontSize:20, color:'var(--forest-mid)' },
+    cta:{ borderTop:'1px solid rgba(61,90,58,0.12)', paddingTop:44 },
+    ctaRow:{ display:'flex', gap:14, alignItems:'center', flexWrap:'wrap', marginBottom:36 },
+    ctaStory:{ background:'var(--forest)', color:'var(--ivory)', padding:'15px 34px', borderRadius:999, fontSize:14, fontWeight:500, letterSpacing:'0.14em', fontFamily:"'Noto Sans TC',sans-serif", cursor:'pointer', border:'none', display:'inline-flex', alignItems:'center', gap:10 },
+    ctaGhost:{ color:'var(--ink-soft)', padding:'15px 10px', fontSize:14, letterSpacing:'0.08em', fontFamily:"'Noto Sans TC',sans-serif", textDecoration:'underline', cursor:'pointer' },
+    igRow:{ padding:'24px 26px', background:'rgba(61,90,58,0.06)', border:'1px solid rgba(61,90,58,0.14)', borderRadius:14, marginBottom:32 },
+    igKicker:{ fontFamily:"'Noto Sans TC',sans-serif", fontSize:11, letterSpacing:'0.22em', color:'var(--ink-muted)', fontWeight:500, marginBottom:4 },
+    igLink:{ fontFamily:"'Caveat',cursive", fontSize:38, color:'var(--forest-deep)', textDecoration:'none', fontWeight:600, display:'inline-flex', alignItems:'center', gap:10, lineHeight:1 },
+    disclaimer:{ fontSize:12, lineHeight:1.8, color:'var(--ink-muted)', fontFamily:"'Noto Sans TC',sans-serif", fontWeight:300 },
   };
 
-  /* ---------- Logo Mark (mini SVG — arches + rewire wordmark) ---------- */
-  function LogoMark({ size = 32, showWord = true }){
+  /* ─────────────────────────────────────────
+     LOGO
+  ───────────────────────────────────────── */
+  function LogoMark({ size = 32 }){
     return (
-      <svg width={size} height={size} viewBox="0 0 64 64" style={{display:'block', borderRadius: size*0.18, overflow:'hidden'}}>
+      <svg width={size} height={size} viewBox="0 0 64 64" style={{display:'block', borderRadius:size*0.18, overflow:'hidden'}}>
         <rect width="64" height="64" rx="11" fill="#3d5a3a"/>
-        {/* arches, dark → light */}
         <path d="M4 60 Q32 20 60 60 Z" fill="#4d6c47"/>
         <path d="M10 60 Q32 26 54 60 Z" fill="#618360"/>
         <path d="M16 60 Q32 32 48 60 Z" fill="#7a9674"/>
         <path d="M22 60 Q32 38 42 60 Z" fill="#b8cdb2"/>
         <path d="M28 60 Q32 44 36 60 Z" fill="#e3ecc9"/>
-        {showWord && (
-          <text x="32" y="24" textAnchor="middle" fill="#f2ead8"
-            style={{fontFamily:"'Noto Serif TC', serif", fontSize: 14, fontWeight: 400, letterSpacing: '0.02em'}}>
-            rewire
-          </text>
-        )}
+        <text x="32" y="24" textAnchor="middle" fill="#f2ead8"
+          style={{fontFamily:"'Noto Serif TC',serif", fontSize:14, fontWeight:400, letterSpacing:'0.02em'}}>
+          rewire
+        </text>
       </svg>
     );
   }
-
-  /* ---------- IG Story Modal (1080 × 1920) ---------- */
-  function StoryModal({ onClose, report }){
-    const cardRef = useRef(null);
-    const [busy, setBusy] = useState(false);
-
-    const download = async () => {
-      if (!cardRef.current || !window.html2canvas) return;
-      setBusy(true);
-      try {
-        const canvas = await window.html2canvas(cardRef.current, {
-          backgroundColor: null,
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          width: 1080,
-          height: 1920,
-          windowWidth: 1080,
-          windowHeight: 1920,
-        });
-        const link = document.createElement('a');
-        link.download = 'rewire-neural-map-prover.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      } catch(e){ console.error(e); }
-      setBusy(false);
-    };
-
-    // preview scale: fit story (1080x1920) into viewport
-    const [scale, setScale] = useState(0.3);
-    useEffect(() => {
-      const fit = () => {
-        const vh = window.innerHeight - 180;
-        const vw = window.innerWidth - 80;
-        setScale(Math.min(vh/1920, vw/1080, 0.5));
-      };
-      fit();
-      window.addEventListener('resize', fit);
-      return () => window.removeEventListener('resize', fit);
-    }, []);
-
-    return (
-      <div style={mStyles.backdrop} onClick={onClose}>
-        <div style={mStyles.inner} onClick={e=>e.stopPropagation()}>
-          <div style={mStyles.header}>
-            <div style={mStyles.headTitle}>IG Story · 1080 × 1920</div>
-            <button onClick={onClose} style={mStyles.close}>✕</button>
-          </div>
-
-          <div style={{...mStyles.stage, height: 1920 * scale + 20}}>
-            <div style={{transform: `scale(${scale})`, transformOrigin:'top center'}}>
-              <StoryCard innerRef={cardRef} report={report}/>
-            </div>
-          </div>
-
-          <div style={mStyles.actions}>
-            <button style={mStyles.dlBtn} onClick={download} disabled={busy}>
-              {busy ? '生成中⋯' : '↓ 下載圖片'}
-            </button>
-            <div style={mStyles.hint}>下載後長按圖片 → 儲存 → 到 IG 發 Story · 記得標 @my.rewire</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  function StoryCard({ innerRef, report }){
-    const reportData = report || REPORTS.prover;
-    return (
-      <div ref={innerRef} style={storyStyles.card}>
-        {/* Layered arch gradient background — echoes the logo */}
-        <div style={storyStyles.bg}>
-          <svg viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice" style={{position:'absolute', inset:0, width:'100%', height:'100%'}}>
-            <rect width="1080" height="1920" fill="#2d3f26"/>
-            <path d="M-200 1920 Q540 600 1280 1920 Z" fill="#3d5a3a"/>
-            <path d="M-120 1920 Q540 820 1200 1920 Z" fill="#4d6c47"/>
-            <path d="M-60 1920 Q540 1040 1140 1920 Z" fill="#618360"/>
-            <path d="M80 1920 Q540 1220 1000 1920 Z" fill="#7a9674" opacity="0.9"/>
-            <path d="M260 1920 Q540 1420 820 1920 Z" fill="#b8cdb2" opacity="0.75"/>
-            <path d="M460 1920 Q540 1620 620 1920 Z" fill="#e3ecc9" opacity="0.85"/>
-          </svg>
-        </div>
-
-        {/* Top brand lockup */}
-        <div style={storyStyles.brand}>
-          <svg width="72" height="72" viewBox="0 0 64 64" style={{borderRadius:12, display:'block'}}>
-            <rect width="64" height="64" rx="11" fill="#3d5a3a"/>
-            <path d="M4 60 Q32 20 60 60 Z" fill="#4d6c47"/>
-            <path d="M10 60 Q32 26 54 60 Z" fill="#618360"/>
-            <path d="M16 60 Q32 32 48 60 Z" fill="#7a9674"/>
-            <path d="M22 60 Q32 38 42 60 Z" fill="#b8cdb2"/>
-            <path d="M28 60 Q32 44 36 60 Z" fill="#e3ecc9"/>
-            <text x="32" y="24" textAnchor="middle" fill="#f2ead8"
-              style={{fontFamily:"'Noto Serif TC', serif", fontSize:14, fontWeight:400, letterSpacing:'0.02em'}}>rewire</text>
-          </svg>
-          <div style={storyStyles.brandText}>
-            <div style={storyStyles.brandLine}>REWIRE · 神經地圖</div>
-            <div style={storyStyles.brandSub}>NEURAL TYPE REPORT</div>
-          </div>
-        </div>
-
-        {/* Main Type */}
-        <div style={storyStyles.typeBlock}>
-          <div style={storyStyles.typeLabel}>我的神經類型</div>
-          <div style={storyStyles.typeName}>{reportData.typeZh}</div>
-          <div style={storyStyles.typeEn}>{reportData.type}</div>
-        </div>
-
-        {/* Pull-quote */}
-        <div style={storyStyles.quote}>
-          <div style={storyStyles.quoteText}>
-            「{reportData.tag.replace(/^你的舊程式是：/, '')}。」
-          </div>
-          <div style={storyStyles.quoteMeta}>— 我大腦裡跑了很久的舊程式</div>
-        </div>
-
-        {/* Reframe */}
-        <div style={storyStyles.reframe}>
-          <div style={storyStyles.reframeLabel}>我正在改寫它</div>
-          <div style={storyStyles.reframeLine}>不是改變，是改寫。</div>
-        </div>
-
-        {/* Footer with IG handle */}
-        <div style={storyStyles.footer}>
-          <div style={storyStyles.footerCol}>
-            <div style={storyStyles.footerKicker}>跟我一起 rewire</div>
-            <div style={storyStyles.footerIg}>@my.rewire</div>
-          </div>
-          <div style={storyStyles.footerCta}>
-            <div style={storyStyles.footerCtaTxt}>7 分鐘測你的</div>
-            <div style={storyStyles.footerCtaBig}>神經地圖 →</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const storyStyles = {
-    card:{ position:'relative', width:1080, height:1920, overflow:'hidden', fontFamily:"'Noto Serif TC', serif", color:'#f2ead8' },
-    bg:{ position:'absolute', inset:0 },
-    brand:{ position:'absolute', top:80, left:80, display:'flex', alignItems:'center', gap:24, zIndex:2 },
-    brandText:{},
-    brandLine:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:22, letterSpacing:'0.3em', color:'#d9e4d5', fontWeight:500 },
-    brandSub:{ fontFamily:"'Caveat', cursive", fontSize:28, color:'#b8cdb2', marginTop:4 },
-    typeBlock:{ position:'absolute', top:320, left:80, right:80, zIndex:2 },
-    typeLabel:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:22, letterSpacing:'0.3em', color:'#b8cdb2', marginBottom:36, fontWeight:500 },
-    typeName:{ fontSize:220, lineHeight:0.95, fontWeight:500, color:'#f2ead8', letterSpacing:'0.02em', marginBottom:16 },
-    typeEn:{ fontFamily:"'Caveat', cursive", fontSize:82, color:'#d9e4d5', fontWeight:500 },
-    quote:{ position:'absolute', top:880, left:80, right:80, zIndex:2 },
-    quoteText:{ fontSize:60, lineHeight:1.5, fontWeight:400, color:'#f2ead8', fontStyle:'italic', letterSpacing:'0.02em', paddingLeft:32, borderLeft:'3px solid #b8cdb2' },
-    quoteMeta:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:22, color:'rgba(242,234,216,0.6)', marginTop:28, paddingLeft:32, fontWeight:300 },
-    reframe:{ position:'absolute', top:1340, left:80, right:80, zIndex:2 },
-    reframeLabel:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:22, letterSpacing:'0.3em', color:'#b8cdb2', marginBottom:24, fontWeight:500 },
-    reframeLine:{ fontFamily:"'Caveat', cursive", fontSize:110, color:'#f2ead8', fontWeight:600, lineHeight:1, whiteSpace:'nowrap' },
-    footer:{ position:'absolute', bottom:80, left:80, right:80, display:'flex', justifyContent:'space-between', alignItems:'flex-end', zIndex:2, paddingTop:36, borderTop:'1px solid rgba(242,234,216,0.2)' },
-    footerCol:{},
-    footerKicker:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:20, letterSpacing:'0.2em', color:'rgba(242,234,216,0.55)', marginBottom:10, fontWeight:400 },
-    footerIg:{ fontFamily:"'Caveat', cursive", fontSize:76, color:'#f2ead8', fontWeight:600, lineHeight:1 },
-    footerCta:{ textAlign:'right' },
-    footerCtaTxt:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:20, color:'rgba(242,234,216,0.65)', fontWeight:300, marginBottom:6 },
-    footerCtaBig:{ fontFamily:"'Noto Serif TC', serif", fontSize:34, color:'#f2ead8', fontWeight:500, letterSpacing:'0.02em' },
-  };
-
-  const mStyles = {
-    backdrop:{ position:'fixed', inset:0, background:'rgba(20,26,18,0.85)', backdropFilter:'blur(8px)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', animation:'fade 300ms ease both', padding:20 },
-    inner:{ maxWidth:'min(100%,640px)', width:'100%', display:'flex', flexDirection:'column', gap:16 },
-    header:{ display:'flex', justifyContent:'space-between', alignItems:'center', color:'var(--ivory)' },
-    headTitle:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:12, letterSpacing:'0.25em', color:'var(--forest-pale)', fontWeight:500 },
-    close:{ color:'var(--ivory)', fontSize:22, padding:'4px 10px', opacity:0.7 },
-    stage:{ display:'flex', justifyContent:'center', alignItems:'flex-start', overflow:'hidden' },
-    actions:{ display:'flex', flexDirection:'column', alignItems:'center', gap:14 },
-    dlBtn:{ background:'var(--ivory-warm)', color:'var(--forest-deep)', padding:'16px 42px', borderRadius:999, fontSize:14, fontWeight:500, letterSpacing:'0.14em', fontFamily:"'Noto Sans TC', sans-serif" },
-    hint:{ fontFamily:"'Noto Sans TC', sans-serif", fontSize:12, color:'rgba(242,234,216,0.6)', textAlign:'center', lineHeight:1.7, fontWeight:300 },
-  };
 
   ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
   </script>
